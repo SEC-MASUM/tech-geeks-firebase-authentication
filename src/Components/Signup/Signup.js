@@ -7,6 +7,7 @@ import {
   signInWithPopup,
 } from "firebase/auth";
 import { auth } from "../../Firebase/Firebase.init";
+import toast from "react-hot-toast";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -47,28 +48,56 @@ const Signup = () => {
 
   const handlePassword = (event) => {
     const passwordInput = event.target.value;
-    setPassword(passwordInput);
+    if (passwordInput.length < 7) {
+      setPassword({ value: "", error: "Password too short" });
+    } else {
+      setPassword({ value: passwordInput, error: "" });
+    }
   };
 
   const handleConfirmPassword = (event) => {
     const confirmPassword = event.target.value;
-    setConfirmPassword(confirmPassword);
+    if (confirmPassword === password.value) {
+      setConfirmPassword({ value: confirmPassword, error: "" });
+    } else {
+      setConfirmPassword({ value: "", error: "Password Mismatched" });
+    }
   };
 
   const handleSignup = (event) => {
     event.preventDefault();
+    // toast.success("hello", { id: "success" });
+    // toast.error("hello", { id: "fail" });
+    if (email.value === "") {
+      setEmail({ value: "", error: "Email is required" });
+    }
+    if (password.value === "") {
+      setPassword({ value: "", error: "Password is required" });
+    }
 
-    // const passwirdConfirmation = event.target.confirmPassword.value;
-    createUserWithEmailAndPassword(auth, email, password)
-      .then((userCredential) => {
-        const user = userCredential.user;
-        console.log(user);
-      })
-      .catch((error) => {
-        const errorMessage = error.message;
-        console.error(errorMessage);
-        // ..
-      });
+    if (
+      email.value &&
+      password.value &&
+      confirmPassword.value === password.value
+    ) {
+      createUserWithEmailAndPassword(auth, email.value, password.value)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          console.log(user);
+          toast.success("User Created", { id: "success" });
+          navigate("/");
+        })
+        .catch((error) => {
+          const errorMessage = error.message;
+          console.error(errorMessage);
+          if (errorMessage.includes("email-already-in-use")) {
+            toast.error("Already Exits", { id: "error" });
+          } else {
+            toast.error(errorMessage, { id: "error" });
+          }
+          // ..
+        });
+    }
   };
 
   return (
@@ -86,7 +115,7 @@ const Signup = () => {
                 onBlur={(event) => handleEmail(event)}
               />
             </div>
-            {email?.error && <p>{email.error}</p>}
+            {email?.error && <p className="error">{email.error}</p>}
           </div>
           <div className="input-field">
             <label htmlFor="password">Password</label>
@@ -98,6 +127,7 @@ const Signup = () => {
                 onBlur={(event) => handlePassword(event)}
               />
             </div>
+            {password?.error && <p className="error">{password.error}</p>}
           </div>
           <div className="input-field">
             <label htmlFor="confirm-password">Confirm Password</label>
@@ -109,6 +139,9 @@ const Signup = () => {
                 onBlur={(event) => handleConfirmPassword(event)}
               />
             </div>
+            {confirmPassword.error && (
+              <p className="error">{confirmPassword.error}</p>
+            )}
           </div>
           <button type="submit" className="auth-form-submit">
             Sign Up
