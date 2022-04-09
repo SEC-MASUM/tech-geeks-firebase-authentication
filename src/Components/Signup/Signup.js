@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import GoogleLogo from "../../Assets/Image/google.svg";
 import {
@@ -13,11 +13,22 @@ const googleProvider = new GoogleAuthProvider();
 const Signup = () => {
   const navigate = useNavigate();
 
+  const [email, setEmail] = useState({ value: "", error: "" });
+  const [password, setPassword] = useState({ value: "", error: "" });
+  const [confirmPassword, setConfirmPassword] = useState({
+    value: "",
+    error: "",
+  });
+  console.log(email);
+  console.log(password);
+  console.log(confirmPassword);
+
   const googleAuth = () => {
     signInWithPopup(auth, googleProvider)
       .then((result) => {
         const user = result.user;
         console.log(user);
+        navigate("/");
       })
       .catch((error) => {
         const errorMessage = error.message;
@@ -25,10 +36,28 @@ const Signup = () => {
       });
   };
 
+  const handleEmail = (event) => {
+    const emailInput = event.target.value;
+    if (/\S+@\S+\.\S+/.test(emailInput)) {
+      setEmail({ value: emailInput, error: "" });
+    } else {
+      setEmail({ value: "", error: "Invalid email" });
+    }
+  };
+
+  const handlePassword = (event) => {
+    const passwordInput = event.target.value;
+    setPassword(passwordInput);
+  };
+
+  const handleConfirmPassword = (event) => {
+    const confirmPassword = event.target.value;
+    setConfirmPassword(confirmPassword);
+  };
+
   const handleSignup = (event) => {
     event.preventDefault();
-    const email = event.target.email.value;
-    const password = event.target.password.value;
+
     // const passwirdConfirmation = event.target.confirmPassword.value;
     createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
@@ -36,7 +65,8 @@ const Signup = () => {
         console.log(user);
       })
       .catch((error) => {
-        console.error(error);
+        const errorMessage = error.message;
+        console.error(errorMessage);
         // ..
       });
   };
@@ -49,13 +79,24 @@ const Signup = () => {
           <div className="input-field">
             <label htmlFor="email">Email</label>
             <div className="input-wrapper">
-              <input type="email" name="email" id="email" />
+              <input
+                type="email"
+                name="email"
+                id="email"
+                onBlur={(event) => handleEmail(event)}
+              />
             </div>
+            {email?.error && <p>{email.error}</p>}
           </div>
           <div className="input-field">
             <label htmlFor="password">Password</label>
             <div className="input-wrapper">
-              <input type="password" name="password" id="password" />
+              <input
+                type="password"
+                name="password"
+                id="password"
+                onBlur={(event) => handlePassword(event)}
+              />
             </div>
           </div>
           <div className="input-field">
@@ -65,6 +106,7 @@ const Signup = () => {
                 type="password"
                 name="confirmPassword"
                 id="confirm-password"
+                onBlur={(event) => handleConfirmPassword(event)}
               />
             </div>
           </div>
